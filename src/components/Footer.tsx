@@ -3,7 +3,7 @@ import { useLanguage } from "@/context/LanguageContext";
 
 const footerHrefs = [
     ["#services", "#about", "#process", "#pricing"],
-    ["/demo/sample", "#demo", "#demo", "#"],
+    ["/demo/legalplus", "#demo", "#demo", "#"],
     ["#", "#", "#"],
 ];
 
