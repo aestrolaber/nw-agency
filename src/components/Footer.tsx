@@ -3,8 +3,8 @@ import { useLanguage } from "@/context/LanguageContext";
 
 const footerHrefs = [
     ["#services", "#about", "#process", "#pricing"],
-    ["/demo/legalplus", "#demo", "#demo", "#"],
-    ["#", "#", "#"],
+    ["/demo/legalplus", "/demo/legalplus", "/demo/legalplus", "/roi.html"],
+    ["#contact", "#contact", "#contact"],
 ];
 
 export default function Footer() {

@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROI Calculator — nw. Agency</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #e0c97a;
+      --dark: #0D0D12;
+      --panel: #1a1a24;
+      --panel2: #2A2A35;
+      --text: #FAF8F5;
+      --muted: rgba(250,248,245,0.45);
+      --border: rgba(201,168,76,0.15);
+    }
+
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--panel2);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
+    .logo span { color: var(--gold); }
+    .header-badge {
+      font-size: 10px;
+      font-family: monospace;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--gold);
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.25);
+      padding: 5px 12px;
+      border-radius: 999px;
+    }
+
+    /* ── Page title ── */
+    .page-title {
+      text-align: center;
+      padding: 44px 20px 28px;
+    }
+    .page-title h1 {
+      font-size: clamp(24px, 4vw, 38px);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+    }
+    .page-title h1 em { color: var(--gold); font-style: normal; }
+    .page-title p {
+      margin-top: 10px;
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 680px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+    }
+    .card-title {
+      font-size: 10px;
+      font-family: monospace;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+
+    /* ── Inputs ── */
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.2px;
+    }
+    .field label strong { color: var(--text); font-weight: 500; }
+
+    .input-row { display: flex; align-items: center; gap: 10px; }
+
+    input[type="range"] {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 4px;
+      background: rgba(201,168,76,0.2);
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--gold);
+      cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.2);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--gold);
+      cursor: pointer;
+      border: none;
+    }
+
+    .value-badge {
+      min-width: 72px;
+      text-align: right;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+      font-family: monospace;
+    }
+
+    /* Plan selector */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .plan-btn {
+      background: rgba(201,168,76,0.06);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 12px;
+      padding: 10px 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      color: var(--muted);
+    }
+    .plan-btn:hover { border-color: var(--gold); color: var(--text); }
+    .plan-btn.active {
+      background: rgba(201,168,76,0.15);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .plan-btn .plan-name { font-size: 11px; font-weight: 600; display: block; margin-bottom: 3px; }
+    .plan-btn .plan-price { font-size: 10px; font-family: monospace; }
+
+    /* ── Results ── */
+    .results-card {
+      background: linear-gradient(135deg, #C9A84C 0%, #b8943e 100%);
+      border-radius: 20px;
+      padding: 28px;
+      grid-column: 1 / -1;
+      position: relative;
+      overflow: hidden;
+    }
+    .results-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 85% 15%, rgba(255,248,220,0.4) 0%, transparent 55%);
+      pointer-events: none;
+    }
+    .results-card .card-title { color: rgba(13,13,18,0.55); }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      position: relative;
+    }
+    @media (max-width: 600px) {
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .metric {
+      background: rgba(13,13,18,0.12);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid rgba(13,13,18,0.1);
+    }
+    .metric-label {
+      font-size: 10px;
+      color: rgba(13,13,18,0.55);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+      font-family: monospace;
+    }
+    .metric-value {
+      font-size: clamp(18px, 2.5vw, 26px);
+      font-weight: 800;
+      color: #0D0D12;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+    .metric-sub {
+      font-size: 10px;
+      color: rgba(13,13,18,0.45);
+      margin-top: 4px;
+      font-family: monospace;
+    }
+    .metric.highlight .metric-value { color: #0D0D12; }
+
+    /* ROI multiplier big display */
+    .roi-hero {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: rgba(13,13,18,0.18);
+      border-radius: 16px;
+      padding: 20px 24px;
+      border: 1px solid rgba(13,13,18,0.12);
+      margin-top: 4px;
+    }
+    .roi-hero-left { flex: 1; }
+    .roi-hero-label {
+      font-size: 11px;
+      font-family: monospace;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: rgba(13,13,18,0.5);
+      margin-bottom: 4px;
+    }
+    .roi-hero-value {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 900;
+      color: #0D0D12;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .roi-hero-desc {
+      font-size: 12px;
+      color: rgba(13,13,18,0.55);
+      margin-top: 6px;
+      max-width: 280px;
+    }
+    .roi-hero-right {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .pill-stat {
+      background: rgba(13,13,18,0.18);
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 12px;
+      font-family: monospace;
+      color: #0D0D12;
+      white-space: nowrap;
+    }
+    .pill-stat strong { font-weight: 700; }
+
+    /* ── Notes ── */
+    .notes {
+      grid-column: 1 / -1;
+      font-size: 11px;
+      color: rgba(201,168,76,0.4);
+      font-family: monospace;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    /* ── Print ── */
+    @media print {
+      header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .results-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { background: white; }
+    }
+
+    /* ── Embed Section ── */
+    .embed-section {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 20px 0;
+    }
+    .embed-title {
+      text-align: center;
+      padding: 44px 20px 28px;
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+    }
+    .embed-title h2 {
+      font-size: clamp(22px, 3.5vw, 32px);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .embed-title h2 em { color: var(--gold); font-style: normal; }
+    .embed-title p { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+    .embed-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 20px;
+    }
+    @media (max-width: 720px) { .embed-grid { grid-template-columns: 1fr; } }
+
+    /* Text inputs */
+    .text-input {
+      width: 100%;
+      background: rgba(201,168,76,0.05);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 12px;
+      font-family: monospace;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .text-input:focus { border-color: var(--gold); }
+    .text-input::placeholder { color: rgba(250,248,245,0.2); }
+
+    /* Provider tabs */
+    .provider-tabs { display: flex; gap: 8px; margin-top: 4px; }
+    .provider-tab {
+      flex: 1;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(201,168,76,0.2);
+      background: rgba(201,168,76,0.05);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: monospace;
+    }
+    .provider-tab:hover { border-color: var(--gold); color: var(--text); }
+    .provider-tab.active { background: rgba(201,168,76,0.15); border-color: var(--gold); color: var(--gold); }
+
+    /* Position grid */
+    .pos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px; }
+    .pos-btn {
+      padding: 8px 6px;
+      border-radius: 10px;
+      border: 1px solid rgba(201,168,76,0.2);
+      background: rgba(201,168,76,0.05);
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .pos-btn:hover { border-color: var(--gold); color: var(--text); }
+    .pos-btn.active { background: rgba(201,168,76,0.15); border-color: var(--gold); color: var(--gold); }
+
+    /* Code block */
+    .code-block {
+      background: #07070b;
+      border: 1px solid rgba(201,168,76,0.12);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: #8dd48d;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.65;
+      min-height: 180px;
+      overflow-x: auto;
+    }
+
+    /* Copy button */
+    .copy-btn {
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 8px;
+      color: var(--gold);
+      font-size: 11px;
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: monospace;
+      font-weight: 600;
+    }
+    .copy-btn:hover { background: rgba(201,168,76,0.2); }
+    .copy-btn.copied { background: rgba(100,200,100,0.12); border-color: rgba(100,200,100,0.35); color: #8dd48d; }
+
+    /* Platform tabs */
+    .platform-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .plat-tab {
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(201,168,76,0.15);
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .plat-tab:hover { border-color: var(--gold); color: var(--text); }
+    .plat-tab.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.1); }
+
+    .platform-instructions {
+      background: rgba(201,168,76,0.04);
+      border: 1px solid rgba(201,168,76,0.1);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+    .platform-instructions ol { padding-left: 18px; }
+    .platform-instructions li { margin-bottom: 4px; }
+    .platform-instructions strong { color: var(--text); }
+
+    /* ── Widget Preview ── */
+    .browser-mockup {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(201,168,76,0.18);
+    }
+    .browser-chrome {
+      background: #222230;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+    }
+    .browser-dots { display: flex; gap: 5px; }
+    .browser-dots span { width: 9px; height: 9px; border-radius: 50%; }
+    .browser-dots span:nth-child(1) { background: #ff5f57; }
+    .browser-dots span:nth-child(2) { background: #ffbd2e; }
+    .browser-dots span:nth-child(3) { background: #28ca41; }
+    .browser-url {
+      flex: 1;
+      background: rgba(0,0,0,0.3);
+      border-radius: 5px;
+      padding: 3px 10px;
+      font-size: 10px;
+      font-family: monospace;
+      color: rgba(250,248,245,0.35);
+      text-align: center;
+    }
+    .browser-body {
+      background: #f2f2ee;
+      height: 210px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Fake page skeleton */
+    .fake-nav {
+      height: 38px;
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 10px;
+    }
+    .fake-nav-logo { width: 52px; height: 10px; background: #d0d0d0; border-radius: 4px; }
+    .fake-nav-links { display: flex; gap: 8px; margin-left: auto; }
+    .fake-nav-links span { width: 30px; height: 8px; background: #e0e0e0; border-radius: 3px; }
+    .fake-hero {
+      margin: 14px 14px 10px;
+      height: 72px;
+      background: linear-gradient(120deg, #e0e0d8 0%, #d4d4cc 100%);
+      border-radius: 8px;
+    }
+    .fake-lines { padding: 0 14px; display: flex; flex-direction: column; gap: 7px; }
+    .fake-lines div { height: 7px; border-radius: 4px; background: #ddd; }
+    .fake-lines div:nth-child(1) { width: 78%; }
+    .fake-lines div:nth-child(2) { width: 60%; }
+    .fake-lines div:nth-child(3) { width: 45%; }
+    /* Floating widget button */
+    .widget-float {
+      position: absolute;
+      transition: top 0.25s, bottom 0.25s, left 0.25s, right 0.25s;
+      cursor: pointer;
+    }
+    .widget-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      white-space: nowrap;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .widget-pill-icon { font-size: 14px; line-height: 1; }
+    .widget-pill-title { font-size: 11px; font-weight: 700; color: white; line-height: 1.2; }
+    .widget-pill-subtitle { font-size: 9px; color: rgba(255,255,255,0.72); margin-top: 1px; }
+    /* Sawtia circle button */
+    .widget-circle {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    /* State toggle pills */
+    .preview-states {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .state-btn {
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(201,168,76,0.2);
+      background: transparent;
+      color: var(--muted);
+      font-size: 10px;
+      cursor: pointer;
+      font-family: monospace;
+      transition: all 0.15s;
+    }
+    .state-btn:hover { border-color: var(--gold); color: var(--text); }
+    .state-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.1); }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">nw<span>.</span></div>
+    <span class="header-badge">ROI Calculator · Sales Tool</span>
+  </header>
+
+  <!-- Title -->
+  <div class="page-title">
+    <h1>Combien perdez-vous <em>chaque mois</em> ?</h1>
+    <p>Ajustez les curseurs selon votre activité — le ROI se calcule en temps réel.</p>
+  </div>
+
+  <!-- Main grid -->
+  <div class="container">
+
+    <!-- ── Inputs left ── -->
+    <div class="card">
+      <div class="card-title">Votre activité actuelle</div>
+
+      <div class="field">
+        <label><strong>Appels + messages entrants</strong> par semaine</label>
+        <div class="input-row">
+          <input type="range" id="leadsPerWeek" min="5" max="300" step="5" value="50" oninput="calc()" />
+          <span class="value-badge" id="leadsPerWeekVal">50</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label><strong>% manqués</strong> hors horaires ou sans réponse</label>
+        <div class="input-row">
+          <input type="range" id="missedPct" min="10" max="80" step="5" value="40" oninput="calc()" />
+          <span class="value-badge" id="missedPctVal">40%</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label><strong>Valeur moyenne</strong> d'un client (MAD)</label>
+        <div class="input-row">
+          <input type="range" id="dealValue" min="500" max="50000" step="500" value="5000" oninput="calc()" />
+          <span class="value-badge" id="dealValueVal">5 000</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label><strong>Taux de conversion</strong> moyen (%)</label>
+        <div class="input-row">
+          <input type="range" id="closeRate" min="5" max="60" step="5" value="20" oninput="calc()" />
+          <span class="value-badge" id="closeRateVal">20%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Inputs right ── -->
+    <div class="card">
+      <div class="card-title">Paramètres IA</div>
+
+      <div class="field">
+        <label><strong>% de leads récupérés</strong> par l'IA (estimation prudente)</label>
+        <div class="input-row">
+          <input type="range" id="recoveryPct" min="50" max="95" step="5" value="75" oninput="calc()" />
+          <span class="value-badge" id="recoveryPctVal">75%</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label><strong>Amélioration du taux de conversion</strong> (IA répond instantanément)</label>
+        <div class="input-row">
+          <input type="range" id="convBoost" min="0" max="30" step="5" value="10" oninput="calc()" />
+          <span class="value-badge" id="convBoostVal">+10%</span>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top: 24px;">
+        <label><strong>Forfait nw.</strong> — choisissez le plan</label>
+        <div class="plan-grid" id="planGrid">
+          <div class="plan-btn" data-price="1500" onclick="selectPlan(this)">
+            <span class="plan-name">Chat</span>
+            <span class="plan-price">1 500 MAD/mois</span>
+          </div>
+          <div class="plan-btn active" data-price="2200" onclick="selectPlan(this)">
+            <span class="plan-name">Voix + Chat</span>
+            <span class="plan-price">2 200 MAD/mois</span>
+          </div>
+          <div class="plan-btn" data-price="3500" onclick="selectPlan(this)">
+            <span class="plan-name">Automatisation</span>
+            <span class="plan-price">3 500 MAD/mois</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Results ── -->
+    <div class="results-card">
+      <div class="card-title">Résultats estimés · Mensuel</div>
+
+      <div class="metrics-grid">
+        <div class="metric">
+          <div class="metric-label">Leads perdus / mois</div>
+          <div class="metric-value" id="rLeadsLost">—</div>
+          <div class="metric-sub">sans IA</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">CA manqué / mois</div>
+          <div class="metric-value" id="rRevLost">—</div>
+          <div class="metric-sub">MAD laissés sur la table</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">CA récupérable</div>
+          <div class="metric-value" id="rRevGained">—</div>
+          <div class="metric-sub">avec agent IA</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Gain net / mois</div>
+          <div class="metric-value" id="rNetGain">—</div>
+          <div class="metric-sub">après frais nw.</div>
+        </div>
+
+        <!-- ROI hero -->
+        <div class="roi-hero">
+          <div class="roi-hero-left">
+            <div class="roi-hero-label">Multiplicateur ROI</div>
+            <div class="roi-hero-value" id="rROI">—</div>
+            <div class="roi-hero-desc">Pour chaque 1 MAD investi dans nw., vous récupérez <span id="rROIDesc">—</span> MAD de chiffre d'affaires.</div>
+          </div>
+          <div class="roi-hero-right">
+            <div class="pill-stat">Seuil de rentabilité : <strong id="rBreakeven">—</strong></div>
+            <div class="pill-stat">Leads récupérés / mois : <strong id="rLeadsBack">—</strong></div>
+            <div class="pill-stat">ROI annuel estimé : <strong id="rAnnualROI">—</strong> MAD</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      * Estimations basées sur des moyennes sectorielles. Les résultats réels peuvent varier. · nw. agency — confidentiel
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- Embed Snippet Generator -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="embed-section">
+
+    <div class="embed-title">
+      <h2>Générateur de snippet <em>d'intégration</em></h2>
+      <p>Configurez l'agent et copiez le code à coller sur le site du client — aucune compétence technique requise.</p>
+    </div>
+
+    <div class="embed-grid">
+
+      <!-- ── Config ── -->
+      <div class="card">
+        <div class="card-title">Configuration</div>
+
+        <!-- Provider -->
+        <div class="field">
+          <label><strong>Fournisseur</strong></label>
+          <div class="provider-tabs">
+            <button class="provider-tab active" data-provider="vapi" onclick="setProvider(this)">VAPI</button>
+            <button class="provider-tab" data-provider="sawtia" onclick="setProvider(this)">Sawtia (Darija)</button>
+          </div>
+        </div>
+
+        <!-- VAPI fields -->
+        <div id="fieldAssistantId" class="field">
+          <label><strong>Assistant ID</strong> <span style="color:var(--muted)">(VAPI dashboard)</span></label>
+          <input type="text" class="text-input" id="assistantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" oninput="generateSnippet()" />
+        </div>
+        <div id="fieldApiKey" class="field">
+          <label><strong>Public API Key</strong> <span style="color:var(--muted)">(VAPI → Account)</span></label>
+          <input type="text" class="text-input" id="apiKey" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" oninput="generateSnippet()" />
+        </div>
+
+        <!-- Sawtia field -->
+        <div id="fieldAgentId" class="field" style="display:none">
+          <label><strong>Agent ID</strong> <span style="color:var(--muted)">(Sawtia dashboard)</span></label>
+          <input type="text" class="text-input" id="agentId" placeholder="95b99f67-xxxx-xxxx-xxxx-xxxxxxxxxxxx" oninput="generateSnippet()" />
+        </div>
+
+        <!-- Label / Subtitle (VAPI only) -->
+        <div id="fieldLabel" class="field">
+          <label><strong>Texte du bouton</strong></label>
+          <input type="text" class="text-input" id="btnLabel" value="Parler à notre assistant" oninput="generateSnippet()" />
+        </div>
+        <div id="fieldSubtitle" class="field">
+          <label><strong>Sous-titre</strong></label>
+          <input type="text" class="text-input" id="btnSubtitle" value="Disponible 24/7" oninput="generateSnippet()" />
+        </div>
+
+        <!-- Position (VAPI only) -->
+        <div id="fieldPosition" class="field">
+          <label><strong>Position</strong></label>
+          <div class="pos-grid">
+            <button class="pos-btn" data-pos="top-left"     onclick="setPos(this)">↖ Haut gauche</button>
+            <button class="pos-btn" data-pos="top-right"    onclick="setPos(this)">↗ Haut droite</button>
+            <button class="pos-btn" data-pos="bottom-left"  onclick="setPos(this)">↙ Bas gauche</button>
+            <button class="pos-btn active" data-pos="bottom-right" onclick="setPos(this)">↘ Bas droite</button>
+          </div>
+        </div>
+
+        <!-- Color (VAPI only) -->
+        <div id="fieldColor" class="field">
+          <label><strong>Couleur du bouton</strong></label>
+          <div style="display:flex;align-items:center;gap:12px">
+            <input type="color" id="btnColor" value="#C9A84C" oninput="generateSnippet()"
+              style="width:44px;height:36px;border:none;background:none;cursor:pointer;border-radius:8px;padding:2px" />
+            <span class="value-badge" id="colorVal" style="min-width:80px">#C9A84C</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Output ── -->
+      <div class="card" style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Widget Preview -->
+        <div>
+          <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span>Aperçu du widget</span>
+            <div class="preview-states">
+              <button class="state-btn active" onclick="setPreviewState(this,'idle')">Idle</button>
+              <button class="state-btn" onclick="setPreviewState(this,'loading')">Chargement</button>
+              <button class="state-btn" onclick="setPreviewState(this,'active')">En appel</button>
+            </div>
+          </div>
+          <div class="browser-mockup">
+            <div class="browser-chrome">
+              <div class="browser-dots"><span></span><span></span><span></span></div>
+              <div class="browser-url" id="previewUrl">votresite.ma</div>
+            </div>
+            <div class="browser-body">
+              <div class="fake-nav">
+                <div class="fake-nav-logo"></div>
+                <div class="fake-nav-links"><span></span><span></span><span></span></div>
+              </div>
+              <div class="fake-hero"></div>
+              <div class="fake-lines"><div></div><div></div><div></div></div>
+              <!-- Floating widget -->
+              <div class="widget-float" id="widgetFloat" style="bottom:16px;right:16px">
+                <div class="widget-pill" id="widgetPill">
+                  <div class="widget-pill-icon" id="widgetIcon">🎙</div>
+                  <div>
+                    <div class="widget-pill-title" id="widgetTitle">Parler à notre assistant</div>
+                    <div class="widget-pill-subtitle" id="widgetSubtitle">Disponible 24/7</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Code -->
+        <div>
+          <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <span>Code généré</span>
+            <button class="copy-btn" id="copyBtn" onclick="copySnippet()">Copier</button>
+          </div>
+          <pre id="snippetCode" class="code-block">Remplissez les champs pour générer le snippet…</pre>
+        </div>
+
+        <!-- Platform instructions -->
+        <div>
+          <div class="card-title" style="margin-bottom:12px">Instructions d'installation</div>
+          <div class="platform-tabs">
+            <button class="plat-tab active" onclick="setPlatform(this,'wp')">WordPress</button>
+            <button class="plat-tab" onclick="setPlatform(this,'wix')">Wix</button>
+            <button class="plat-tab" onclick="setPlatform(this,'shopify')">Shopify</button>
+            <button class="plat-tab" onclick="setPlatform(this,'webflow')">Webflow</button>
+            <button class="plat-tab" onclick="setPlatform(this,'html')">HTML pur</button>
+          </div>
+          <div class="platform-instructions" id="platInstructions"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="notes" style="margin-top:20px;padding-bottom:0">
+      * Le code généré ne contient aucune donnée sensible côté client — vos clés API restent dans votre environnement.
+    </div>
+
+  </div>
+
+  <script>
+    let planPrice = 2200;
+
+    function selectPlan(el) {
+      document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      planPrice = parseInt(el.dataset.price);
+      calc();
+    }
+
+    function fmt(n) {
+      return Math.round(n).toLocaleString('fr-MA');
+    }
+
+    function calc() {
+      const leadsPerWeek = +document.getElementById('leadsPerWeek').value;
+      const missedPct    = +document.getElementById('missedPct').value / 100;
+      const dealValue    = +document.getElementById('dealValue').value;
+      const closeRate    = +document.getElementById('closeRate').value / 100;
+      const recoveryPct  = +document.getElementById('recoveryPct').value / 100;
+      const convBoost    = +document.getElementById('convBoost').value / 100;
+
+      // Update display labels
+      document.getElementById('leadsPerWeekVal').textContent = leadsPerWeek;
+      document.getElementById('missedPctVal').textContent    = Math.round(missedPct * 100) + '%';
+      document.getElementById('dealValueVal').textContent    = fmt(dealValue);
+      document.getElementById('closeRateVal').textContent    = Math.round(closeRate * 100) + '%';
+      document.getElementById('recoveryPctVal').textContent  = Math.round(recoveryPct * 100) + '%';
+      document.getElementById('convBoostVal').textContent    = '+' + Math.round(convBoost * 100) + '%';
+
+      // Core maths
+      const leadsPerMonth  = leadsPerWeek * 4.33;
+      const leadsLost      = leadsPerMonth * missedPct;
+      const revLost        = leadsLost * closeRate * dealValue;
+
+      const leadsRecovered    = leadsLost * recoveryPct;
+      const boostedCloseRate  = closeRate + convBoost;
+      const revGained         = leadsRecovered * boostedCloseRate * dealValue;
+
+      const netGain    = revGained - planPrice;
+      const roi        = planPrice > 0 ? revGained / planPrice : 0;
+      const annualROI  = netGain * 12;
+
+      // Breakeven: how many recovered leads needed to cover plan cost
+      const leadsForBreakeven = planPrice / (boostedCloseRate * dealValue);
+      const breakevenDays = leadsForBreakeven / (leadsPerWeek / 7);
+
+      // Render
+      document.getElementById('rLeadsLost').textContent  = fmt(leadsLost);
+      document.getElementById('rRevLost').textContent    = fmt(revLost) + ' MAD';
+      document.getElementById('rRevGained').textContent  = fmt(revGained) + ' MAD';
+      document.getElementById('rNetGain').textContent    = fmt(netGain) + ' MAD';
+      document.getElementById('rROI').textContent        = roi.toFixed(1) + 'x';
+      document.getElementById('rROIDesc').textContent    = roi.toFixed(1);
+      document.getElementById('rLeadsBack').textContent  = fmt(leadsRecovered);
+      document.getElementById('rAnnualROI').textContent  = fmt(annualROI);
+
+      const bd = Math.ceil(breakevenDays);
+      document.getElementById('rBreakeven').textContent =
+        bd <= 1  ? '< 1 jour' :
+        bd <= 7  ? bd + ' jours' :
+        bd <= 30 ? Math.ceil(bd / 7) + ' semaines' :
+                   Math.ceil(bd / 30) + ' mois';
+    }
+
+    // Init
+    calc();
+
+    // ── Embed Snippet Generator ──────────────────────────────
+
+    let embedProvider = 'vapi';
+    let btnPosition   = 'bottom-right';
+
+    const platformInstructions = {
+      wp: `<ol>
+        <li>Installez le plugin <strong>"Insert Headers and Footers"</strong> (gratuit, WPCode)</li>
+        <li>Allez dans <strong>Settings → Insert Headers and Footers</strong></li>
+        <li>Collez le code dans la section <strong>"Scripts in Footer"</strong></li>
+        <li>Cliquez <strong>Save</strong> — le widget apparaît immédiatement</li>
+      </ol>`,
+      wix: `<ol>
+        <li>Allez dans <strong>Settings → Custom Code</strong></li>
+        <li>Cliquez <strong>+ Add Custom Code</strong></li>
+        <li>Collez le snippet, sélectionnez <strong>"Body — end"</strong></li>
+        <li>Appliquez à <strong>"All Pages"</strong> puis publiez</li>
+      </ol>`,
+      shopify: `<ol>
+        <li>Allez dans <strong>Online Store → Themes → Edit Code</strong></li>
+        <li>Ouvrez <strong>Layout → theme.liquid</strong></li>
+        <li>Collez le code juste avant la balise <strong>&lt;/body&gt;</strong></li>
+        <li>Sauvegardez — le widget est actif sur tout le store</li>
+      </ol>`,
+      webflow: `<ol>
+        <li>Allez dans <strong>Project Settings → Custom Code</strong></li>
+        <li>Dans la section <strong>"Footer Code"</strong>, collez le snippet</li>
+        <li>Cliquez <strong>Save Changes</strong> et publiez le site</li>
+      </ol>`,
+      html: `<ol>
+        <li>Ouvrez le fichier <strong>HTML principal</strong> de la page</li>
+        <li>Collez le code juste avant la balise fermante <strong>&lt;/body&gt;</strong></li>
+        <li>Sauvegardez et déployez — aucune dépendance externe requise</li>
+      </ol>`,
+    };
+
+    function setProvider(el) {
+      document.querySelectorAll('.provider-tab').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      embedProvider = el.dataset.provider;
+
+      const isVapi = embedProvider === 'vapi';
+      ['fieldAssistantId','fieldApiKey','fieldLabel','fieldSubtitle','fieldPosition','fieldColor']
+        .forEach(id => document.getElementById(id).style.display = isVapi ? '' : 'none');
+      document.getElementById('fieldAgentId').style.display = isVapi ? 'none' : '';
+
+      generateSnippet();
+    }
+
+    function setPos(el) {
+      document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      btnPosition = el.dataset.pos;
+      generateSnippet();
+    }
+
+    function setPlatform(el, key) {
+      document.querySelectorAll('.plat-tab').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('platInstructions').innerHTML = platformInstructions[key];
+    }
+
+    function generateSnippet() {
+      const color = document.getElementById('btnColor').value;
+      document.getElementById('colorVal').textContent = color.toUpperCase();
+
+      let code = '';
+
+      if (embedProvider === 'vapi') {
+        const assistantId = document.getElementById('assistantId').value.trim() || 'VOTRE_ASSISTANT_ID';
+        const apiKey      = document.getElementById('apiKey').value.trim()      || 'VOTRE_PUBLIC_API_KEY';
+        const label       = document.getElementById('btnLabel').value.trim()    || 'Parler à notre assistant';
+        const subtitle    = document.getElementById('btnSubtitle').value.trim() || 'Disponible 24/7';
+
+        code =
+`<!-- nw. Agency — Agent IA vocale -->
+<script>
+  var vapiInstance = null;
+  const vapiConfig = {
+    position: "${btnPosition}",
+    offset: "24px",
+    width: "50px",
+    height: "50px",
+    idle: {
+      color: "${color}",
+      type: "pill",
+      title: "${label}",
+      subtitle: "${subtitle}",
+    },
+    loading: {
+      color: "${color}",
+      type: "pill",
+      title: "Connexion en cours…",
+    },
+    active: {
+      color: "#e74c3c",
+      type: "pill",
+      title: "Appel en cours",
+      subtitle: "Cliquez pour terminer",
+    },
+  };
+  (function (d, t) {
+    var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+    g.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
+    g.defer = true; g.async = true;
+    s.parentNode.insertBefore(g, s);
+    g.onload = function () {
+      vapiInstance = window.vapiSDK.run({
+        apiKey: "${apiKey}",
+        assistant: "${assistantId}",
+        config: vapiConfig,
+      });
+    };
+  })(document, "script");
+<\/script>`;
+
+      } else {
+        const agentId = document.getElementById('agentId').value.trim() || 'VOTRE_AGENT_ID';
+        code =
+`<!-- nw. Agency — Agent IA Darija (Sawtia) -->
+<script src="https://sawtia.ma/widget-loader.js"><\/script>
+<sawtia-widget agent-id="${agentId}"></sawtia-widget>`;
+      }
+
+      document.getElementById('snippetCode').textContent = code;
+      updatePreview();
+    }
+
+    // ── Widget Preview ───────────────────────────────────────
+
+    let previewState = 'idle';
+
+    function setPreviewState(el, state) {
+      document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      previewState = state;
+      updatePreview();
+    }
+
+    function updatePreview() {
+      const float   = document.getElementById('widgetFloat');
+      const pill    = document.getElementById('widgetPill');
+      const icon    = document.getElementById('widgetIcon');
+      const title   = document.getElementById('widgetTitle');
+      const sub     = document.getElementById('widgetSubtitle');
+      const isVapi  = embedProvider === 'vapi';
+
+      // ── Sawtia: show simple circle ──
+      if (!isVapi) {
+        // Replace pill with circle if needed
+        float.style.bottom = '16px';
+        float.style.right  = '16px';
+        float.style.top    = '';
+        float.style.left   = '';
+        pill.style.borderRadius = '50%';
+        pill.style.padding      = '11px';
+        pill.style.background   = '#2A6DBF';
+        pill.style.boxShadow    = '0 4px 18px rgba(42,109,191,0.5)';
+        icon.textContent        = '🎤';
+        title.textContent       = '';
+        sub.style.display       = 'none';
+        return;
+      }
+
+      // ── VAPI: pill ──
+      pill.style.borderRadius = '999px';
+      pill.style.padding      = '9px 14px';
+      sub.style.display       = '';
+
+      // Position
+      const posMap = {
+        'bottom-right': { bottom: '16px', right: '16px', top: '',     left: ''    },
+        'bottom-left':  { bottom: '16px', right: '',     top: '',     left: '16px' },
+        'top-right':    { bottom: '',     right: '16px', top: '54px', left: ''    },
+        'top-left':     { bottom: '',     right: '',     top: '54px', left: '16px' },
+      };
+      const pos = posMap[btnPosition] || posMap['bottom-right'];
+      float.style.bottom = pos.bottom;
+      float.style.right  = pos.right;
+      float.style.top    = pos.top;
+      float.style.left   = pos.left;
+
+      const rawColor = document.getElementById('btnColor').value;
+
+      if (previewState === 'idle') {
+        pill.style.background  = rawColor;
+        pill.style.boxShadow   = `0 4px 18px ${rawColor}66`;
+        icon.textContent       = '🎙';
+        title.textContent      = document.getElementById('btnLabel').value || 'Parler à notre assistant';
+        sub.textContent        = document.getElementById('btnSubtitle').value || 'Disponible 24/7';
+        sub.style.color        = 'rgba(255,255,255,0.72)';
+      } else if (previewState === 'loading') {
+        pill.style.background  = rawColor;
+        pill.style.boxShadow   = `0 4px 18px ${rawColor}66`;
+        icon.textContent       = '⏳';
+        title.textContent      = 'Connexion en cours…';
+        sub.textContent        = '';
+      } else if (previewState === 'active') {
+        pill.style.background  = '#e74c3c';
+        pill.style.boxShadow   = '0 4px 18px rgba(231,76,60,0.55)';
+        icon.textContent       = '🔴';
+        title.textContent      = 'Appel en cours';
+        sub.textContent        = 'Cliquez pour terminer';
+        sub.style.color        = 'rgba(255,255,255,0.72)';
+      }
+    }
+
+    function copySnippet() {
+      const code = document.getElementById('snippetCode').textContent;
+      if (!code || code.startsWith('Remplissez')) return;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = '✓ Copié !';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copier';
+          btn.classList.remove('copied');
+        }, 2200);
+      });
+    }
+
+    // Init embed section
+    document.getElementById('platInstructions').innerHTML = platformInstructions.wp;
+    generateSnippet();
+    updatePreview();
+  </script>
+</body>
+</html>

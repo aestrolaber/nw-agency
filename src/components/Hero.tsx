@@ -156,7 +156,7 @@ export default function Hero() {
                         <span>{t.hero.cta1}</span>
                         <ArrowRight size={16} className="relative z-10" />
                     </a>
-                    <a href="#demo" className="btn-magnetic btn-outline text-base px-8 py-4">
+                    <a href="/demo/legalplus" className="btn-magnetic btn-outline text-base px-8 py-4">
                         <span className="btn-bg" />
                         <span>{t.hero.cta2}</span>
                     </a>

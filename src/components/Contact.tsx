@@ -3,14 +3,28 @@ import { useState } from "react";
 import { ArrowRight, Mail, Phone, Building2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
+type FormState = { name: string; email: string; phone: string; business: string; url: string };
+type Status = "idle" | "loading" | "success" | "error";
+
 export default function Contact() {
     const { t } = useLanguage();
-    const [submitted, setSubmitted] = useState(false);
-    const [form, setForm] = useState({ name: "", email: "", phone: "", business: "", url: "" });
+    const [status, setStatus] = useState<Status>("idle");
+    const [form, setForm] = useState<FormState>({ name: "", email: "", phone: "", business: "", url: "" });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitted(true);
+        setStatus("loading");
+        try {
+            const res = await fetch("/api/capture-lead", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form),
+            });
+            if (!res.ok) throw new Error("server_error");
+            setStatus("success");
+        } catch {
+            setStatus("error");
+        }
     };
 
     const fields = [
@@ -36,7 +50,7 @@ export default function Contact() {
                     </p>
                 </div>
 
-                {submitted ? (
+                {status === "success" ? (
                     <div className="rounded-3xl p-12 text-center" style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)" }}>
                         <div className="font-drama text-5xl mb-4" style={{ color: "#C9A84C" }}>{t.contact.successTitle}</div>
                         <p className="font-mono text-sm" style={{ color: "rgba(250,248,245,0.6)" }}>{t.contact.successBody}</p>
@@ -50,9 +64,9 @@ export default function Contact() {
                                 </label>
                                 <input
                                     type={field.type}
-                                    required
+                                    required={field.id !== "phone"}
                                     placeholder={field.placeholder}
-                                    value={form[field.id as keyof typeof form]}
+                                    value={form[field.id as keyof FormState]}
                                     onChange={(e) => setForm({ ...form, [field.id]: e.target.value })}
                                     className="rounded-2xl px-4 py-3 text-sm outline-none transition-all duration-200"
                                     style={{ background: "rgba(13,13,18,0.6)", border: "1px solid rgba(201,168,76,0.15)", color: "#FAF8F5" }}
@@ -72,10 +86,20 @@ export default function Contact() {
                                 style={{ background: "rgba(13,13,18,0.6)", border: "1px solid rgba(201,168,76,0.15)", color: "#FAF8F5" }}
                             />
                         </div>
+                        {status === "error" && (
+                            <div className="md:col-span-2 text-sm text-center" style={{ color: "#ff6b6b" }}>
+                                Une erreur est survenue. Réessayez ou contactez-nous directement.
+                            </div>
+                        )}
                         <div className="md:col-span-2">
-                            <button type="submit" className="btn-magnetic btn-primary w-full py-4 text-base rounded-2xl">
+                            <button
+                                type="submit"
+                                disabled={status === "loading"}
+                                className="btn-magnetic btn-primary w-full py-4 text-base rounded-2xl"
+                                style={{ opacity: status === "loading" ? 0.7 : 1 }}
+                            >
                                 <span className="btn-bg" />
-                                <span>{t.contact.cta}</span>
+                                <span>{status === "loading" ? "Envoi en cours…" : t.contact.cta}</span>
                                 <ArrowRight size={18} className="relative z-10" />
                             </button>
                         </div>

@@ -46,10 +46,11 @@ function ChatWidget({ prospect }: { prospect: Prospect }) {
 
     // Full conversation history passed to the API for multi-turn context
     const historyRef = useRef<HistoryEntry[]>([]);
-    const bottomRef = useRef<HTMLDivElement>(null);
+    const messagesRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        const el = messagesRef.current;
+        if (el) el.scrollTop = el.scrollHeight;
     }, [messages]);
 
     // Reset when language or prospect changes
@@ -147,7 +148,7 @@ function ChatWidget({ prospect }: { prospect: Prospect }) {
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 no-scrollbar">
+                    <div ref={messagesRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 no-scrollbar">
                         {messages.map((msg, i) => (
                             <div
                                 key={i}
@@ -181,7 +182,6 @@ function ChatWidget({ prospect }: { prospect: Prospect }) {
                                 </div>
                             </div>
                         )}
-                        <div ref={bottomRef} />
                     </div>
 
                     {/* Input */}
@@ -366,7 +366,7 @@ export default function DemoClient({ prospect }: { prospect: Prospect }) {
     // Lead form
     const [leadSubmitted, setLeadSubmitted] = useState(false);
     const [leadSending, setLeadSending] = useState(false);
-    const [lead, setLead] = useState({ name: "", email: "" });
+    const [lead, setLead] = useState({ name: "", email: "", website: "" });
 
     /* ── Check if URL allows iframing ── */
     useEffect(() => {
@@ -459,6 +459,13 @@ export default function DemoClient({ prospect }: { prospect: Prospect }) {
         } finally {
             setLeadSending(false);
             setLeadSubmitted(true);
+
+            // 🎉 Confetti burst
+            const confetti = (await import("canvas-confetti")).default;
+            const colors = ["#C9A84C", "#FAF8F5", "#e0c97a", "#fff8e1"];
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.7 }, colors });
+            setTimeout(() => confetti({ particleCount: 50, spread: 100, origin: { y: 0.6 }, colors }), 200);
+            setTimeout(() => confetti({ particleCount: 30, spread: 60,  origin: { y: 0.65 }, colors }), 420);
         }
     }, [lead, prospect.id]);
 
@@ -481,6 +488,17 @@ export default function DemoClient({ prospect }: { prospect: Prospect }) {
                         Demo mode
                     </span>
                 )}
+            </div>
+
+            {/* Disclaimer bar */}
+            <div
+                className="w-full max-w-2xl rounded-2xl px-5 py-3 mb-4 flex items-center justify-center gap-2 text-center"
+                style={{ background: "rgba(250,248,245,0.04)", border: "1px solid rgba(250,248,245,0.1)" }}
+            >
+                <span style={{ fontSize: "15px" }}>🔍</span>
+                <p className="font-mono text-xs leading-relaxed" style={{ color: "rgba(250,248,245,0.45)" }}>
+                    Démonstration uniquement — <span style={{ color: "rgba(250,248,245,0.7)" }}>{prospect.businessName}</span> est une vraie entreprise utilisée ici à titre illustratif.
+                </p>
             </div>
 
             {/* Intro banner */}
@@ -570,105 +588,142 @@ export default function DemoClient({ prospect }: { prospect: Prospect }) {
 
             {/* ── Booking CTA ── */}
             <div
-                className="w-full max-w-2xl rounded-3xl p-8 mt-6"
-                style={{
-                    background: "linear-gradient(135deg, rgba(201,168,76,0.1) 0%, rgba(201,168,76,0.04) 100%)",
-                    border: "1px solid rgba(201,168,76,0.25)",
-                }}
+                className="w-full max-w-2xl rounded-3xl p-8 mt-6 relative overflow-hidden"
+                style={{ background: "linear-gradient(135deg, #C9A84C 0%, #b8943e 100%)" }}
             >
-                <div className="font-mono text-xs uppercase tracking-widest mb-3" style={{ color: "#C9A84C" }}>
-                    Prochaine étape · Next Step
+                {/* Subtle light burst top-right */}
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ background: "radial-gradient(circle at 85% 10%, rgba(255,248,220,0.35) 0%, transparent 55%)" }}
+                />
+
+                {/* Trust pills */}
+                <div className="flex flex-wrap gap-2 mb-5 relative">
+                    {["✓ 100% Gratuit", "✓ Sans engagement", "✓ ROI garanti"].map((pill) => (
+                        <span
+                            key={pill}
+                            className="font-mono text-xs px-3 py-1.5 rounded-full"
+                            style={{ background: "rgba(13,13,18,0.18)", color: "#0D0D12", border: "1px solid rgba(13,13,18,0.15)" }}
+                        >
+                            {pill}
+                        </span>
+                    ))}
                 </div>
-                <h2 className="font-heading text-2xl mb-3" style={{ color: "#FAF8F5" }}>
-                    Impressionné ? Réservez votre{" "}
-                    <span style={{ color: "#C9A84C" }}>AI Impact Assessment</span>
+
+                <h2 className="font-heading text-2xl md:text-3xl mb-3 relative leading-tight" style={{ color: "#0D0D12" }}>
+                    30 minutes pour voir exactement<br className="hidden sm:block" />{" "}
+                    ce que <span style={{ color: "#FAF8F5" }}>votre activité</span> laisse sur la table — et le plan pour tout récupérer.
                 </h2>
-                <p className="text-sm mb-6 leading-relaxed" style={{ color: "rgba(250,248,245,0.55)" }}>
-                    Un appel de 15 minutes pour voir exactement comment cette IA peut capturer et convertir
-                    les prospects de <strong style={{ color: "#FAF8F5" }}>{prospect.businessName}</strong> — 24h/24, 7j/7.
+
+                <p className="text-sm mb-6 leading-relaxed relative" style={{ color: "rgba(13,13,18,0.65)" }}>
+                    Pas de pitch agressif. Pas de contrat à signer. Juste un regard honnête sur
+                    les opportunités que vous manquez chaque semaine — et un plan concret pour les capturer.
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative">
                     {bookingUrl ? (
                         <a
                             href={bookingUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="btn-magnetic btn-primary px-8 py-4 rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold"
+                            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-xl"
+                            style={{ background: "#0D0D12", color: "#C9A84C" }}
                         >
-                            <span className="btn-bg" />
-                            <Calendar size={16} className="relative z-10" />
-                            <span className="relative z-10">Réserver un créneau gratuit</span>
-                            <ArrowRight size={16} className="relative z-10" />
+                            <Calendar size={16} />
+                            Réserver mon bilan gratuit — 30 min
+                            <ArrowRight size={16} />
                         </a>
                     ) : (
                         <div
-                            className="px-8 py-4 rounded-2xl flex items-center gap-2 text-sm font-mono"
-                            style={{ background: "rgba(201,168,76,0.08)", border: "1px dashed rgba(201,168,76,0.3)", color: "rgba(201,168,76,0.5)" }}
+                            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-mono"
+                            style={{ background: "rgba(13,13,18,0.2)", border: "1px dashed rgba(13,13,18,0.3)", color: "rgba(13,13,18,0.5)" }}
                         >
                             <Calendar size={16} />
                             Add NEXT_PUBLIC_BOOKING_URL to .env.local
                         </div>
                     )}
                 </div>
+
+                <p className="mt-4 font-mono text-xs relative" style={{ color: "rgba(13,13,18,0.45)" }}>
+                    Aucune carte bancaire. Aucune obligation. Annulable à tout moment.
+                </p>
             </div>
 
-            {/* ── Lead capture ── */}
+            {/* ── ROI Analysis lead capture ── */}
             <div
                 className="w-full max-w-2xl rounded-3xl p-8 mt-6 mb-8"
-                style={{ background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.15)" }}
+                style={{ background: "rgba(13,13,18,0.6)", border: "1px solid rgba(201,168,76,0.1)" }}
             >
                 {leadSubmitted ? (
-                    <div className="text-center py-4">
-                        <div className="font-drama text-3xl mb-2" style={{ color: "#C9A84C" }}>
-                            {t.contact.successTitle}
+                    <div className="text-center py-6">
+                        <div className="font-drama text-4xl mb-3" style={{ color: "#C9A84C" }}>
+                            C'est lancé 🚀
                         </div>
-                        <p className="font-mono text-sm" style={{ color: "rgba(250,248,245,0.5)" }}>
-                            {t.contact.successBody}
+                        <p className="font-heading text-lg mb-2" style={{ color: "#FAF8F5" }}>
+                            Votre démo personnalisée est en cours de préparation.
+                        </p>
+                        <p className="font-mono text-xs" style={{ color: "rgba(250,248,245,0.4)" }}>
+                            Vous recevrez un lien sous 24h — testez Yasmine directement sur votre site.
                         </p>
                     </div>
                 ) : (
                     <>
-                        <div className="font-mono text-xs uppercase tracking-widest mb-3" style={{ color: "#C9A84C" }}>
-                            {t.demo.leadBadge}
+                        <div className="font-mono text-xs uppercase tracking-widest mb-3" style={{ color: "rgba(201,168,76,0.6)" }}>
+                            Pas encore convaincu ?
                         </div>
-                        <h2 className="font-heading text-xl mb-6" style={{ color: "#FAF8F5" }}>
-                            {t.demo.leadHeading}
+                        <h2 className="font-heading text-xl mb-2" style={{ color: "#FAF8F5" }}>
+                            Obtenez votre démo{" "}
+                            <span style={{ color: "#C9A84C" }}>sur votre propre site</span>
                         </h2>
-                        <form onSubmit={handleLeadSubmit} className="flex flex-col gap-4">
+                        <p className="text-sm mb-6 leading-relaxed" style={{ color: "rgba(250,248,245,0.45)" }}>
+                            On installe Yasmine sur votre site web et on vous envoie le lien sous 24h — vous testez exactement ce que vos visiteurs verront. Aucun engagement, aucune installation de votre côté.
+                        </p>
+                        <form onSubmit={handleLeadSubmit} className="flex flex-col gap-3">
                             <input
                                 required
-                                placeholder={t.demo.leadNamePrefix}
+                                placeholder="Votre prénom"
                                 value={lead.name}
                                 onChange={(e) => setLead({ ...lead, name: e.target.value })}
                                 className="rounded-2xl px-4 py-3 text-sm outline-none"
                                 style={{
-                                    background: "rgba(13,13,18,0.6)",
-                                    border: "1px solid rgba(201,168,76,0.15)",
+                                    background: "rgba(42,42,53,0.5)",
+                                    border: "1px solid rgba(201,168,76,0.12)",
                                     color: "#FAF8F5",
                                 }}
                             />
                             <input
                                 required
                                 type="email"
-                                placeholder={t.demo.leadEmailPrefix}
+                                placeholder="Votre e-mail professionnel"
                                 value={lead.email}
                                 onChange={(e) => setLead({ ...lead, email: e.target.value })}
                                 className="rounded-2xl px-4 py-3 text-sm outline-none"
                                 style={{
-                                    background: "rgba(13,13,18,0.6)",
-                                    border: "1px solid rgba(201,168,76,0.15)",
+                                    background: "rgba(42,42,53,0.5)",
+                                    border: "1px solid rgba(201,168,76,0.12)",
+                                    color: "#FAF8F5",
+                                }}
+                            />
+                            <input
+                                required
+                                placeholder="Votre site web (ex: votreentreprise.ma)"
+                                value={lead.website}
+                                onChange={(e) => setLead({ ...lead, website: e.target.value })}
+                                className="rounded-2xl px-4 py-3 text-sm outline-none"
+                                style={{
+                                    background: "rgba(42,42,53,0.5)",
+                                    border: "1px solid rgba(201,168,76,0.12)",
                                     color: "#FAF8F5",
                                 }}
                             />
                             <button
                                 type="submit"
                                 disabled={leadSending}
-                                className="btn-magnetic btn-primary py-4 rounded-2xl text-sm disabled:opacity-60"
+                                className="btn-magnetic btn-primary py-4 rounded-2xl text-sm disabled:opacity-60 mt-1"
                             >
                                 <span className="btn-bg" />
                                 <span className="relative z-10">
-                                    {leadSending ? "Envoi…" : t.demo.leadCta}
+                                    {leadSending ? "Envoi en cours…" : "Recevoir ma démo personnalisée"}
                                 </span>
                                 {leadSending
                                     ? <Loader2 size={16} className="relative z-10 animate-spin" />

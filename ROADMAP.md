@@ -1,258 +1,277 @@
-# nw. Agency Platform — Project Roadmap
+# nw. Agency — Product & Business Roadmap
 
-> Last updated: 2026-02-26
-> Stack: Next.js 16 · TypeScript · Tailwind v4 · GSAP · VAPI
-> Strategy: "Digital Donut" — value-first personalized demo, no pitch until they're impressed.
+> Strategy: **Digital Donut flywheel** — build a personalized demo for a prospect → send the link → they experience their own business with AI → they convert. Repeat at scale.
 
 ---
 
-## Legend
-- ✅ Complete
-- ⚠️ Partial / needs fix
-- 🔲 Not started
-- 🔗 Depends on another phase
+## PHASE 0 — Foundation ✅ DONE
+
+All core infrastructure is live and production-ready.
+
+### Platform
+- [x] Next.js 16 app (App Router, TypeScript, Tailwind v4)
+- [x] Bilingual system — FR / EN, language context, full translations
+- [x] Landing page — Hero, Features, Philosophy, Protocol, Pricing, Contact, Footer
+- [x] Demo page — personalized per-prospect via `/demo/[id]`
+- [x] Phone frame mockup with live iframe / screenshot fallback
+- [x] Chat widget powered by Anthropic (`/api/chat`)
+- [x] Voice AI powered by VAPI Web SDK
+- [x] Lead capture form with `canvas-confetti` success animation
+- [x] Contact / booking form on main landing page
+- [x] Smooth scroll bug fixed (chat stays inside phone frame)
+
+### Architecture
+- [x] `prospects.ts` — market-aware (`"ma" | "en"`), VAPI assistant ID auto-resolved per market
+- [x] `prompts.ts` — per-prospect system prompts for chat AI
+- [x] `translations.ts` — full FR + EN copy including all demo strings
+- [x] `check-url` API — iframe embed detection per prospect
+- [x] `capture-lead` API — lead collection endpoint
+- [x] `.env.local` — `VAPI_ASSISTANT_ID_MA`, `VAPI_ASSISTANT_ID_EN`, `NEXT_PUBLIC_VAPI_PUBLIC_KEY`, `ANTHROPIC_API_KEY`, `NEXT_PUBLIC_BOOKING_URL`
+
+### Morocco Focus (default)
+- [x] FR as default language
+- [x] MAD-only pricing (Chat 1 500 · Voix+Chat 2 200 · Automatisation complète 3 500)
+- [x] Moroccan placeholders on contact form (Youssef Benali, +212…, votresite.ma)
+- [x] French-only voice agent — non-French callers get contact collected → human followup
+- [x] Voice pilot: OpenAI `nova` — upgrade path: ElevenLabs Charlotte (paid plan)
+- [x] Transcriber: Deepgram `nova-2` / `multi` language
+
+### First Prospect — Legal Plus (legalplus.ma)
+- [x] Knowledge base scraped from legalplus.ma — corrected from generic law firm to legal tech SaaS
+- [x] Chat system prompt: Yasmine, bilingual FR/EN responses, real services + products + contact
+- [x] VAPI voice system prompt written (French-only + correct Legal Plus data)
+- [x] Prospect entry in `prospects.ts` — market: `"ma"`, agentName: Yasmine, voiceAgentName: Yasmine
+
+### Business Operations
+- [x] `business/AUTO_ENTREPRENEUR.md` — Morocco AE registration, tax 2%, CNSS, plafond 500k MAD
+- [x] `business/CONTRAT_PRESTATION.md` — French service contract template (10 articles + Annexe A)
+- [x] `business/FACTURE_TEMPLATE.md` — Invoice template with nw. branding + Legal Plus pilot example
+- [x] `business/PAIEMENT_GUIDE.md` — RIB, espèces, Wise, Payoneer, relance templates
+- [x] `business/INTERNATIONAL_SALES.md` — US/EU niche strategy, $497/$997/$1997 pricing, cold email templates
+- [x] `business/US_LLC_SETUP.md` — Wyoming LLC, EIN, Mercury bank, Stripe for non-residents
+- [x] `business/CONTRACT_INTERNATIONAL_EN.md` — English service agreement for US/EU clients
+- [x] `business/VoiceAIMarketResearch.md` — Perplexity research brief: ICP profile, 23 research Qs, MA + US niches
+
+### Sales Tools
+- [x] `public/roi.html` — interactive ROI calculator (sliders + real-time output) + embed snippet generator with live widget preview
+- [x] `public/sawtia-test.html` — Sawtia Darija widget isolated test page + Web Audio mic diagnostic panel
+
+### UX / Demo Improvements
+- [x] Booking CTA section redesigned — full gold background, trust pills (100% Gratuit · Sans engagement · ROI garanti)
+- [x] Lead form success — `canvas-confetti` burst animation on submit
+- [x] Pricing hover bug fixed — dark sweep so gold text stays visible on dark cards
+- [x] Darija feature added to Voix+Chat and Automatisation tiers (FR + EN translations)
+
+### ICP Pivot — Strategic Decision
+> **Legal Plus is kept as a live demo asset only.** As a legal tech SaaS, they can build AI themselves — low close probability and wrong archetype.
+>
+> **Priority targets (high tech barrier + French clientele + high deal value):**
+> 1. Cabinets dentaires — appointment booking after hours
+> 2. Cliniques esthétiques — inquiry handling + booking
+> 3. Agences immobilières haut de gamme — lead qualification + visit scheduling
+
+### Darija Voice Supplier — Sawtia.ma
+- [x] Pricing analyzed: Free (10 min) · Multilingue 279 MAD/agent/month · **Darija Native 379 MAD/agent/month** · Sur mesure
+- [x] Margin confirmed: 379 MAD cost vs 2 200+ MAD charge = **83%+ gross margin**
+- [ ] **White-label / reseller option** — contact Sawtia before integrating (critical gate)
 
 ---
 
-## The Full Digital Donut Flow
+## PHASE 1 — Pilot · Morocco · First Paying Client 🔄 IN PROGRESS
 
-```
-[You] Find leaking-lead businesses (no chat, no after-hours)
-         ↓
-[You] Pull lead list (Outscraper → name, website, phone, email)
-         ↓
-[Auto] Qualify: does their site have a chat widget? Do they answer after hours?
-         ↓
-[You] Send outreach: "I noticed you're missing leads... built something for you"
-         ↓
-[Auto] Scrape their website → build AI knowledge base → create VAPI assistant
-         ↓
-[Auto] Generate personalized demo URL → send via email (Resend)
-         ↓
-[Prospect] Opens link → sees their own site in iPhone → chats with Emma → calls Yasmine
-         ↓
-[Prospect] Scrolls down → books "AI Impact Assessment" with your agency
-         ↓
-[You] Close the deal on the call
-```
+**Goal:** Close first paying client. Validate the full loop end-to-end.
 
----
+> ⚠️ **ICP note:** Legal Plus kept as demo asset. Priority pivot to dental / clinique / immobilier. Whoever responds first becomes the first paying client.
 
-## Phase 0 — Foundation ✅
+### Technical (blockers — do before sending any demo link)
+- [ ] **Deploy to Vercel** — get live URL (e.g. `nwagency.vercel.app` or custom domain) — **#1 blocker**
+- [ ] **`.env.local` + Vercel env** — add `NEXT_PUBLIC_BOOKING_URL` (Calendly 30-min call link)
+- [ ] **`capture-lead` API** — wire Resend email notification so leads arrive in inbox instantly
+- [ ] **VAPI dashboard** — switch voice from `nova` → Azure `fr-FR-BrigitteNeural` (or `fr-MA-JamalNeural`)
 
-| Task | Status |
-|------|--------|
-| Next.js 16 App Router + TypeScript + Tailwind v4 | ✅ |
-| Midnight Luxe design system (Obsidian, Champagne, Ivory, Slate) | ✅ |
-| GSAP animations (all SSR-safe, context + cleanup) | ✅ |
-| Bilingual EN/FR via `LanguageContext` + `translations.ts` | ✅ |
-| Landing page: Hero, Features, Philosophy, Protocol (sticky-stack), Pricing, Contact, Footer | ✅ |
-| Demo route `/demo/[id]` with `notFound()` fallback | ✅ |
-| Static prospect registry `src/lib/prospects.ts` | ✅ |
+### Demo Pipeline — Build & Send
+- [ ] Build demo: **cabinet dentaire** (Casablanca/Rabat) — agent = appointment booking after hours
+- [ ] Build demo: **clinique esthétique** — agent = inquiry + booking + FAQ
+- [ ] Build demo: **agence immobilière** — agent = lead qualification + visit scheduling
+- [ ] Send Legal Plus demo link (low priority — demo asset only, not primary close target)
+- [ ] Outreach: 5 targeted businesses per niche with personalized demo link
+
+### Sales Flow (per prospect)
+- [ ] Send demo link → follow up within 24h — "Vous avez essayé d'appeler [agent name] ?"
+- [ ] Discovery call — present ROI case using `roi.html` calculator live on screen
+- [ ] Close on **Voix+Chat — 2 200 MAD/mois**
+- [ ] Sign contract (`business/CONTRAT_PRESTATION.md`)
+- [ ] Deploy widget on their site using embed snippet generator (`roi.html` → scroll down)
+- [ ] Issue invoice month 1 (0 MAD pilot → month 2 full price)
+
+### Sawtia Gate
+- [ ] Contact Sawtia re: white-label/reseller → if yes, unlock Darija market immediately
+
+### Success Signal
+> First paying client live. Testimonial collected. Embed workflow validated end-to-end.
 
 ---
 
-## Phase 1 — Demo Engine (Digital Donut Core) ✅ / ⚠️
+## PHASE 2 — Morocco Scale · 3–10 Clients
 
-> Goal: Prospect opens the link → sees their website → talks to AI → books a call.
+**Goal:** Systematize the Digital Donut. One new demo per day. 3+ paying clients in 60 days.
 
-| Task | Status | Notes |
-|------|--------|-------|
-| iPhone mockup frame with fake browser chrome | ✅ | macOS traffic lights, URL bar |
-| Iframe detection API (`GET /api/check-url`) | ✅ | Checks `X-Frame-Options` + CSP |
-| Screenshot fallback via thum.io | ✅ | Always works, no auth needed |
-| Chat widget "Emma" (UI + UX) | ✅ | Opens inside phone frame |
-| Chat widget — real AI responses | ⚠️ | **Currently simulated** — needs VAPI chat or equivalent |
-| Voice AI "Yasmine" via VAPI SDK | ✅ | Real calls, waveform, states |
-| VAPI graceful degradation (simulation mode) | ✅ | Works without keys |
-| Booking CTA at bottom of demo page | ⚠️ | **Lead form exists but no calendar booking link** |
-| Lead form data goes somewhere (CRM/Supabase) | ⚠️ | **Currently discarded — not saved** |
-| Live prospect: Legal Plus `/demo/legalplus` | ✅ | `legalplus.ma` |
-| VAPI system prompt applied (Yasmine) | ⚠️ | **Must apply manually in VAPI dashboard** |
+### Demo Factory Automation
+- [ ] **Firecrawl integration** — `/api/scrape?url=X` → returns structured page content
+- [ ] **Auto-prompt generator** — scrape → GPT-4o generates `prompts.ts` entry automatically
+- [ ] **Admin route** `/admin/new-prospect` — form: business name + URL → prospect entry + prompt in < 2 min
+- [ ] Target: demo build time **< 5 min per prospect** (down from ~30 min manual)
 
-### Immediate fixes needed in Phase 1
+### Infrastructure
+- [ ] **Supabase** — move prospects + leads from in-memory/file to database
+  - `prospects` table — id, businessName, websiteUrl, agentName, market, vapiAssistantId, prompt
+  - `leads` table — id, prospectId, name, email, website, createdAt
+- [ ] **Resend** email — instant notification when a prospect submits the lead form
+- [ ] **Calendly embed** — inline widget on demo page instead of external link
 
-1. **Booking CTA**: Add Calendly (or equivalent) embed/link as primary CTA — this is the *closing mechanism*
-2. **Lead form**: Wire to an API route that saves to Supabase or posts to a webhook (GHL/n8n)
-3. **VAPI dashboard**: Manually apply Yasmine / Legal Plus system prompt
+### Voice Improvements
+- [ ] Per-prospect voice persona — different agent name + voice per client
+- [ ] Darija/Arabic option — Azure `ar-MA-MounaNeural` (market `"ma"` already wired)
+- [ ] ElevenLabs Charlotte upgrade for paying clients (French, professional, warm)
 
----
-
-## Phase 1.5 — Demo Page Fixes 🔲
-
-> Small but critical changes to match the original strategy's closing flow.
-
-| Task | Status | Notes |
-|------|--------|-------|
-| Add booking section (Calendly or cal.com embed) | 🔲 | Primary CTA — "Book your AI Impact Assessment" |
-| Wire lead form to API route (`POST /api/capture-lead`) | 🔲 | Save to Supabase or n8n webhook |
-| Improve ChatWidget to use real AI (VAPI chat or GPT fallback) | 🔲 | Phase 2A Firecrawl content feeds this |
-| Add prospect phone number field to `Prospect` type | 🔲 | For outreach tracking |
-
----
-
-## Phase 2 — Automation Pipeline 🔲
-
-### 2A · Firecrawl — Website Knowledge Base 🔲
-
-**What it does**: Scrapes prospect's website → clean markdown → becomes the AI's brain.
-This replaces the "drop URL into Custom GPT" step from the video.
-
-| Task | Status |
-|------|--------|
-| Install `@mendable/firecrawl-js` | 🔲 |
-| `POST /api/scrape-prospect` — scrape URL → return markdown | 🔲 |
-| Store scraped content (file cache or Supabase) | 🔲 |
-| Inject scraped content into VAPI system prompt (auto-personalized) | 🔲 |
-| Feed scraped content to ChatWidget for real responses | 🔲 |
-
-**Env var**: `FIRECRAWL_API_KEY` → [firecrawl.dev](https://firecrawl.dev)
-
----
-
-### 2B · Supabase — Database 🔲
-
-**What it does**: Replaces static `prospects.ts`. Add prospects without touching code.
-Equivalent to GoHighLevel contact records from the video — but you own the data.
-
-| Task | Status |
-|------|--------|
-| Create Supabase project | 🔲 |
-| `prospects` table (mirrors current `Prospect` interface + scraped content + assistantId) | 🔲 |
-| `leads` table (captures name, email, prospect_id, timestamp) | 🔲 |
-| Replace `getProspect()` / `getAllProspects()` with Supabase queries | 🔲 |
-| Save lead form submissions to `leads` table | 🔲 |
-
-**Env vars**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-
----
-
-### 2C · VAPI Auto-Create — Per-Prospect Assistants 🔲
-
-**What it does**: Instead of one shared assistant, auto-creates a unique VAPI assistant per prospect.
-Equivalent to "paste custom GPT prompt → get ADID" from the video — but fully automated.
-
-| Task | Status |
-|------|--------|
-| `POST /api/create-assistant` — call VAPI REST API to create assistant | 🔲 |
-| Build system prompt dynamically from Firecrawl content (2A) | 🔲 |
-| Store returned `assistantId` back to Supabase (2B) | 🔲 |
-
-**Env var**: `VAPI_PRIVATE_KEY`
-**Depends on**: 2A + 2B
-
----
-
-### 2D · Resend — Personalized Demo Emails 🔲
-
-**What it does**: Sends the prospect a branded email linking to `/demo/{id}`.
-Equivalent to the GHL automation that triggers when the ADID is saved.
-
-| Task | Status |
-|------|--------|
-| Install `resend` SDK | 🔲 |
-| Design HTML email: prospect name, business name, screenshot preview, CTA button | 🔲 |
-| `POST /api/send-demo-email` | 🔲 |
-| Trigger manually (button in admin UI) or via n8n webhook | 🔲 |
-
-**Env var**: `RESEND_API_KEY` → [resend.com](https://resend.com)
-
----
-
-## Phase 2E · Lead Sourcing Pipeline 🔲
-
-**What it does**: Replaces Outscraper from the video. Pull targeted lists of local businesses.
-This is Phase 1 of the video's prospecting process.
-
-| Task | Status | Notes |
-|------|--------|-------|
-| Choose lead source tool | 🔲 | Options: Outscraper, Apollo, Google Maps API, PhantomBuster |
-| Export CSV: business name, website, phone, email, category, location | 🔲 | |
-| Bulk import into Supabase `prospects` table | 🔲 | Via admin UI or CSV import |
-| Automated chat widget detection per prospect | 🔲 | Firecrawl scrape → check for LiveChat/Intercom/Drift |
-| After-hours verification flag | 🔲 | Manual or via VAPI test call |
-| Outreach message template | 🔲 | "I noticed you're missing leads..." |
-
----
-
-## Phase 3 — n8n Full Automation Pipeline 🔲
-
-> Goal: Add a prospect URL → everything else is automatic within minutes.
-
-| Task | Status |
-|------|--------|
-| n8n workflow: Webhook → Firecrawl scrape → VAPI create assistant → save to Supabase → send Resend email | 🔲 |
-| Prospect status tracking: `imported → scraped → assistant_created → emailed → demo_viewed → lead_captured → booked` | 🔲 |
-| VAPI call log webhook → save call duration + transcript to Supabase | 🔲 |
-| Notification when prospect views demo (page visit tracking) | 🔲 |
-| Notification when prospect submits lead form | 🔲 |
-
----
-
-## Phase 4 — Production & Scale 🔲
-
-| Task | Status |
-|------|--------|
-| Deploy to Vercel | 🔲 |
-| Custom domain + SSL | 🔲 |
-| SEO metadata (production URLs, og:image with prospect name) | 🔲 |
-| Analytics (PostHog or Vercel Analytics) | 🔲 |
-| Multi-language expansion (Arabic for Moroccan market) | 🔲 |
-| Admin dashboard — manage prospects, view lead submissions, track status | 🔲 |
-
----
-
-## Tool Mapping: Video vs. Our Stack
-
-| Video Tool | Our Equivalent | Status |
+### Morocco Prospect Pipeline — Build These Demos Proactively
+| Prospect Type | Hook | VAPI Agent |
 |---|---|---|
-| Outscraper (lead lists) | Outscraper / Apollo / Google Maps API | 🔲 Phase 2E |
-| GoHighLevel (CRM) | Supabase + n8n | 🔲 Phase 2B + 3 |
-| GHL automation (chat widget detection) | n8n + Firecrawl | 🔲 Phase 2E + 3 |
-| Custom GPT from URL | Firecrawl + Claude API | 🔲 Phase 2A |
-| Bot Mockups (ADID) | VAPI assistant ID | ✅ Phase 1 |
-| GHL ADID custom field | Supabase `prospects` table | 🔲 Phase 2B |
-| GHL email trigger | n8n + Resend | 🔲 Phase 2D + 3 |
-| iPhone mockup frame | `DemoClient.tsx` PhoneFrame | ✅ Phase 1 |
-| Emma (chat AI, knows business) | ChatWidget → needs real AI | ⚠️ Phase 1.5 |
-| Jenna / voice AI (knows business) | VAPI Yasmine | ✅ Phase 1 |
-| Booking form at bottom | Lead form exists → add Calendly | ⚠️ Phase 1.5 |
+| Cabinet dentaire (Casablanca/Rabat) | Appointment booking after hours | French voice |
+| Agence immobilière | Property inquiries, visit scheduling | French voice |
+| Cabinet d'avocat | Consultation booking, FAQ | French voice |
+| Clinique / médecin généraliste | Appointment + triage | French voice |
+| Auto-école | Enrollment + planning | French voice |
+| E-commerce Maroc | Order support, returns | French + Darija |
+
+### Success Signal
+> 5 paying Moroccan clients. MRR ≥ 10 000 MAD.
 
 ---
 
-## Recommended Build Order
+## PHASE 3 — International Market · US / EU
 
-```
-⚠️  Fix Phase 1 manual step (VAPI dashboard system prompt)
-         ↓
-🔲  Phase 1.5 — Booking CTA + lead form API route   ← do this next, closes the loop
-         ↓
-🔲  Phase 2D — Resend email                          ← start pitching immediately
-         ↓
-🔲  Phase 2E — Lead sourcing                         ← build the prospect pipeline
-         ↓
-🔲  Phase 2A — Firecrawl                             ← make demos business-specific
-         ↓
-🔲  Phase 2B — Supabase                              ← scale the data layer
-         ↓
-🔲  Phase 2C — VAPI auto-create                      ← full per-prospect assistants
-         ↓
-🔲  Phase 3  — n8n pipeline                          ← hands-off automation
-         ↓
-🔲  Phase 4  — Production deploy
-```
+**Goal:** Clone the Morocco playbook in English. Separate domain, USD pricing, EN voice agents.
+
+### Separate Domain & Config
+- [ ] New domain: `nwagency.com` (or `nw.agency`)
+- [ ] EN default language on international domain
+- [ ] USD pricing visible in EN (Chat $497 · Voice+Chat $997 · Full Automation $1 997)
+- [ ] `VAPI_ASSISTANT_ID_EN` — new VAPI assistant, EN voice (en-US-JennyNeural or ElevenLabs)
+- [ ] International contact form with USD / US placeholders
+
+### US Market — Target Niches
+Sourced from `business/INTERNATIONAL_SALES.md`:
+| Niche | AI Use Case |
+|---|---|
+| Law firms | After-hours intake, consultation booking |
+| Dental practices | New patient capture, appointment FAQ |
+| Real estate agents | Lead qualification, showing scheduling |
+| Home services (roofing, HVAC) | Quote requests, emergency calls |
+| Chiropractic / wellness | New patient onboarding |
+
+### Outreach
+- [ ] Cold email sequence (templates in `business/INTERNATIONAL_SALES.md`)
+- [ ] Apollo / Hunter.io for verified emails
+- [ ] 20 personalized demo links/week
+- [ ] LinkedIn for law firms + dental
+
+### Legal & Payments (US)
+- [ ] Wyoming LLC registered (`business/US_LLC_SETUP.md`)
+- [ ] Stripe account active (USD)
+- [ ] International contract live (`business/CONTRACT_INTERNATIONAL_EN.md`)
+
+### Success Signal
+> 3+ US clients. MRR ≥ $3 000 USD.
 
 ---
 
-## Environment Variables — Full Reference
+## PHASE 4 — Product Maturity
 
-| Variable | Phase | Source |
-|----------|-------|--------|
-| `NEXT_PUBLIC_VAPI_PUBLIC_KEY` | 1 ✅ | dashboard.vapi.ai → Account → API Keys |
-| `VAPI_PRIVATE_KEY` | 2C | dashboard.vapi.ai → Account → API Keys |
-| `FIRECRAWL_API_KEY` | 2A | firecrawl.dev → Dashboard |
-| `NEXT_PUBLIC_SUPABASE_URL` | 2B | supabase.com → Project → Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 2B | supabase.com → Project → Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | 2B | supabase.com → Project → Settings → API |
-| `RESEND_API_KEY` | 2D | resend.com → API Keys |
-| `CALENDLY_URL` (or cal.com slug) | 1.5 | Your booking page |
+**Goal:** Less manual work. More leverage. Clients self-serve.
+
+### Client Portal
+- [ ] `/portal/[clientId]` — client sees their leads, call logs, performance metrics
+- [ ] Lead history table (name, email, website, date captured)
+- [ ] Monthly performance summary (leads captured, calls handled, bookings)
+- [ ] Call transcript viewer (VAPI transcript API)
+
+### Automation Workflows (n8n)
+- [ ] Lead → CRM sync (HighLevel or HubSpot)
+- [ ] Lead → SMS follow-up sequence (Twilio)
+- [ ] Lead → WhatsApp message (Twilio or Meta API)
+- [ ] Missed call → instant callback trigger
+- [ ] Lead scoring from chat history (intent signals)
+
+### CRM Integrations
+- [ ] HighLevel (most common in agency space)
+- [ ] HubSpot (mid-market US)
+- [ ] Webhook-based (custom for non-standard CRMs)
+
+### Reporting
+- [ ] Monthly ROI dashboard — auto-generated email or PDF
+- [ ] Chat history export per prospect
+- [ ] Weekly lead digest (email digest to client)
+
+---
+
+## PHASE 5 — Scale & Leverage
+
+**Goal:** System runs without you in delivery. Focus only on sales and strategy.
+
+### Team
+- [ ] First VA / appointment setter — outreach + DM follow-up
+- [ ] Prompt engineer — per-client AI customization
+- [ ] Part-time account manager — client success + upsells
+
+### Productization
+- [ ] Self-serve onboarding — client fills form → demo auto-built in < 1h
+- [ ] White-label option — resellers deploy under their own brand
+- [ ] Agency partner program — commission for referrals
+
+### Revenue Targets
+| Milestone | MRR | Clients | Market |
+|-----------|-----|---------|--------|
+| Phase 1 | 2 200 MAD | 1 | Morocco |
+| Phase 2 | 15 000 MAD | 7 | Morocco |
+| Phase 3 | $3 000 USD | 3 | US |
+| Phase 4 | $10 000 USD | 10 | US + MA |
+| Phase 5 | $30 000 USD | 30+ | Global |
+
+---
+
+## Tech Stack — Current & Planned
+
+| Layer | Tool | Status |
+|-------|------|--------|
+| Frontend | Next.js 16, Tailwind v4, TypeScript | ✅ Done |
+| Chat AI | Anthropic Claude (via `/api/chat`) | ✅ Done |
+| Voice AI | VAPI Web SDK | ✅ Done |
+| Voice MA | OpenAI `nova` → Azure `fr-FR-BrigitteNeural` | Phase 1 |
+| Voice EN | ElevenLabs Charlotte / `en-US-JennyNeural` | Phase 3 |
+| Database | In-memory → Supabase | Phase 2 |
+| Email | — → Resend | Phase 1 |
+| Scraping | — → Firecrawl | Phase 2 |
+| Booking | External URL → Calendly embed | Phase 1 |
+| Automation | — → n8n | Phase 4 |
+| Payments MA | Virement / Wise / Payoneer | Phase 1 |
+| Payments US | — → Stripe | Phase 3 |
+| Hosting | Local → Vercel | Phase 1 |
+
+---
+
+## This Week — Immediate Next Actions
+
+### 🔴 Blockers (nothing ships without these)
+1. **Deploy to Vercel** → get the live URL → share with first prospects
+2. **Add `NEXT_PUBLIC_BOOKING_URL`** → Calendly 30-min call → `.env.local` + Vercel env
+3. **Wire Resend** → leads from `/api/capture-lead` hit your inbox instantly
+
+### 🟡 Revenue (do in parallel with blockers)
+4. **Contact Sawtia** → ask about white-label / reseller option → if yes = Darija market unlocked
+5. **Run Perplexity research** → feed `business/VoiceAIMarketResearch.md` → identify top 2 niches with real business examples + pricing benchmarks
+6. **Build 3 demos** → cabinet dentaire · clinique esthétique · agence immobilière
+
+### 🟢 Quick wins (< 30 min each)
+7. **VAPI dashboard** → switch voice `nova` → `fr-FR-BrigitteNeural` + verify Legal Plus system prompt
+8. **Calendly** → create 30-min "Bilan IA gratuit" event type if not done

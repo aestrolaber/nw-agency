@@ -19,7 +19,7 @@ export default function Navbar() {
     const navLinks = [
         { label: t.nav.services, href: "#services" },
         { label: t.nav.about, href: "#about" },
-        { label: t.nav.demo, href: "#demo" },
+        { label: t.nav.demo, href: "/demo/legalplus" },
         { label: t.nav.contact, href: "#contact" },
     ];
 

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sawtia — Test Darija Agent</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0D0D12;
+      color: #FAF8F5;
+      font-family: system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 40px 20px;
+    }
+    .badge {
+      font-size: 10px;
+      font-family: monospace;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #C9A84C;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.25);
+      padding: 5px 14px;
+      border-radius: 999px;
+    }
+    h1 { font-size: 22px; font-weight: 700; }
+    h1 span { color: #C9A84C; }
+    p { font-size: 13px; color: rgba(250,248,245,0.45); text-align: center; max-width: 380px; line-height: 1.6; }
+
+    /* ── Mic diagnostic panel ── */
+    .mic-panel {
+      background: #1a1a24;
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 16px;
+      padding: 20px 24px;
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .mic-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mic-label {
+      font-size: 10px;
+      font-family: monospace;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: rgba(201,168,76,0.6);
+    }
+    .mic-status {
+      font-size: 11px;
+      font-family: monospace;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(201,168,76,0.08);
+      color: rgba(201,168,76,0.5);
+    }
+    .mic-status.ok  { background: rgba(74,222,128,0.1); color: #4ade80; }
+    .mic-status.err { background: rgba(239,68,68,0.1);  color: #ef4444; }
+
+    /* Meter bar */
+    .meter-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(201,168,76,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .meter-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #C9A84C, #e0c97a);
+      border-radius: 999px;
+      transition: width 0.05s linear;
+    }
+
+    /* Bars visualizer */
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 32px;
+    }
+    .bar {
+      flex: 1;
+      background: rgba(201,168,76,0.25);
+      border-radius: 3px;
+      height: 4px;
+      transition: height 0.05s linear;
+    }
+
+    .mic-hint {
+      font-size: 11px;
+      font-family: monospace;
+      color: rgba(250,248,245,0.2);
+      text-align: center;
+    }
+
+    /* Device selector */
+    select {
+      width: 100%;
+      background: rgba(42,42,53,0.6);
+      border: 1px solid rgba(201,168,76,0.12);
+      color: #FAF8F5;
+      font-size: 12px;
+      font-family: monospace;
+      padding: 8px 12px;
+      border-radius: 10px;
+      outline: none;
+      cursor: pointer;
+    }
+    select option { background: #1a1a24; }
+  </style>
+</head>
+<body>
+
+  <span class="badge">Sandbox · Sawtia.ma Test</span>
+  <h1>Test agent <span>Darija</span></h1>
+  <p>Vérifiez que le micro capte votre voix (barre ci-dessous), puis parlez dans le widget Sawtia en bas à droite.</p>
+
+  <!-- ── Mic diagnostic panel ── -->
+  <div class="mic-panel">
+    <div class="mic-header">
+      <span class="mic-label">Microphone</span>
+      <span class="mic-status" id="micStatus">En attente…</span>
+    </div>
+
+    <select id="deviceSelect" onchange="switchDevice(this.value)">
+      <option value="">Chargement des microphones…</option>
+    </select>
+
+    <div class="meter-track">
+      <div class="meter-fill" id="meterFill"></div>
+    </div>
+
+    <div class="bars" id="bars">
+      <!-- 20 bars injected by JS -->
+    </div>
+
+    <div class="mic-hint" id="micHint">Autoriser le microphone pour commencer le test</div>
+  </div>
+
+  <!-- Sawtia widget -->
+  <script src="https://sawtia.ma/widget-loader.js"></script>
+  <sawtia-widget agent-id="95b99f67cd321b0a98ad8c2ef939319975599ce160caccefd2e34a0abdc6bb7d"></sawtia-widget>
+
+  <script>
+    let analyser, dataArray, animFrame;
+    let currentStream = null;
+
+    // Build bar elements
+    const barsEl = document.getElementById('bars');
+    const BAR_COUNT = 24;
+    const barEls = [];
+    for (let i = 0; i < BAR_COUNT; i++) {
+      const b = document.createElement('div');
+      b.className = 'bar';
+      barsEl.appendChild(b);
+      barEls.push(b);
+    }
+
+    async function startMic(deviceId) {
+      try {
+        if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+        if (animFrame) cancelAnimationFrame(animFrame);
+
+        const constraints = { audio: deviceId ? { deviceId: { exact: deviceId } } : true };
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+        const ctx = new AudioContext();
+        const source = ctx.createMediaStreamSource(currentStream);
+        analyser = ctx.createAnalyser();
+        analyser.fftSize = 64;
+        source.connect(analyser);
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        document.getElementById('micStatus').textContent = 'Actif ✓';
+        document.getElementById('micStatus').className = 'mic-status ok';
+        document.getElementById('micHint').textContent = 'Parlez — si la barre bouge, votre micro fonctionne';
+
+        drawLoop();
+        loadDevices();
+      } catch (e) {
+        document.getElementById('micStatus').textContent = 'Refusé ✗';
+        document.getElementById('micStatus').className = 'mic-status err';
+        document.getElementById('micHint').textContent = 'Microphone refusé — autorisez-le dans la barre d\'adresse';
+      }
+    }
+
+    function drawLoop() {
+      animFrame = requestAnimationFrame(drawLoop);
+      analyser.getByteFrequencyData(dataArray);
+
+      const avg = dataArray.reduce((s, v) => s + v, 0) / dataArray.length;
+      const pct = Math.min(100, (avg / 128) * 100 * 2.5);
+      document.getElementById('meterFill').style.width = pct + '%';
+
+      // Bars
+      const step = Math.floor(dataArray.length / BAR_COUNT);
+      for (let i = 0; i < BAR_COUNT; i++) {
+        const val = dataArray[i * step] / 255;
+        const h = Math.max(4, val * 32);
+        barEls[i].style.height = h + 'px';
+        barEls[i].style.background = val > 0.5
+          ? 'rgba(201,168,76,0.9)'
+          : val > 0.2
+          ? 'rgba(201,168,76,0.5)'
+          : 'rgba(201,168,76,0.2)';
+      }
+    }
+
+    async function loadDevices() {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const mics = devices.filter(d => d.kind === 'audioinput');
+      const sel = document.getElementById('deviceSelect');
+      sel.innerHTML = mics.map(d =>
+        `<option value="${d.deviceId}">${d.label || 'Microphone ' + (mics.indexOf(d)+1)}</option>`
+      ).join('');
+    }
+
+    function switchDevice(id) {
+      if (id) startMic(id);
+    }
+
+    // Start immediately
+    startMic();
+  </script>
+
+</body>
+</html>
