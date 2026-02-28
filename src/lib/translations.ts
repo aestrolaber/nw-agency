@@ -178,7 +178,7 @@ export const translations = {
                 },
                 {
                     title: "Platform",
-                    links: ["Live Demo", "Voice AI", "Chat AI", "Dashboard"],
+                    links: ["Live Demo", "Voice AI", "Chat AI"],
                 },
                 {
                     title: "Legal",
@@ -378,7 +378,7 @@ export const translations = {
                 },
                 {
                     title: "Plateforme",
-                    links: ["Démo en direct", "IA vocale", "Chat IA", "Tableau de bord"],
+                    links: ["Démo en direct", "IA vocale", "Chat IA"],
                 },
                 {
                     title: "Légal",
