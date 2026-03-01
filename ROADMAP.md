@@ -93,7 +93,7 @@ All core infrastructure is live and production-ready.
 > ⚠️ **ICP note:** Legal Plus kept as demo asset. Priority pivot to dental / clinique / immobilier. Whoever responds first becomes the first paying client.
 
 ### Technical (blockers — do before sending any demo link)
-- [ ] **Deploy to Vercel** — get live URL (e.g. `nwagency.vercel.app` or custom domain) — **#1 blocker**
+- [x] **Deploy to Vercel** — GitHub linked, auto-deploy on every `git push origin main`
 - [x] **`NEXT_PUBLIC_BOOKING_URL`** — switched from Calendly to Cal.com (`cal.com/nw.-agency/30min`)
 - [x] **`capture-lead` API** — Resend wired, leads arrive in inbox instantly (two templates: landing page + demo request)
 - [ ] **VAPI dashboard** — switch voice from `nova` → Azure `fr-FR-BrigitteNeural` (or `fr-MA-JamalNeural`)
@@ -282,12 +282,15 @@ Sourced from `business/INTERNATIONAL_SALES.md`:
 - [x] Demo page disclaimer cleaned up
 - [x] Forms fully wired to API (landing page + demo request)
 - [x] Pricing consistent in MAD for EN + FR
+- [x] **Deployed to Vercel** — GitHub linked, auto-deploy active
 
-### 🔴 Blocker (nothing ships without this)
-1. **Deploy to Vercel** → live URL → this is the only thing blocking outreach
-   - Go to vercel.com → Import from GitHub (`aestrolaber/nw-agency`)
-   - Add all keys from `.env.local` to Vercel → Environment Variables
-   - Every `git push origin main` auto-deploys from now on
+### ✅ Blocker cleared
+1. ~~**Deploy to Vercel**~~ → **DONE** — GitHub linked, live on Vercel, auto-deploys on every push
+
+### 🔴 Remaining blocker
+- **Add env vars to Vercel dashboard** → `RESEND_API_KEY`, `LEAD_EMAIL`, `NEXT_PUBLIC_BOOKING_URL`, `OPENAI_API_KEY`, `NEXT_PUBLIC_VAPI_PUBLIC_KEY`, `VAPI_ASSISTANT_ID_MA`
+  - Vercel dashboard → Project → Settings → Environment Variables
+  - Without these, forms and voice agent won't work in production
 
 ### 🟡 Revenue (this week)
 2. **Record Loom demo video** — free, 15 min, no editing
