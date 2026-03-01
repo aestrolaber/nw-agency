@@ -61,6 +61,15 @@ All core infrastructure is live and production-ready.
 - [x] Lead form success — `canvas-confetti` burst animation on submit
 - [x] Pricing hover bug fixed — dark sweep so gold text stays visible on dark cards
 - [x] Darija feature added to Voix+Chat and Automatisation tiers (FR + EN translations)
+- [x] Annual pricing toggle — 20% discount, savings badge, "facturé annuellement" sub-text
+- [x] MAD-only pricing in both FR + EN (no more USD in EN version)
+- [x] Navbar + Hero demo CTA links → `/demo/legalplus`
+- [x] Footer all links functional — no more `#` dead-ends
+- [x] Demo page disclaimer (removed false "avec son accord" claim)
+- [x] Philosophy typo fixed ("Nous, nous nous" → "Nous, nous")
+- [x] ROI calculator hidden from public footer — internal sales tool only
+- [x] Contact form + demo lead form fully wired to API (POST → Resend email)
+- [x] Cal.com replacing Calendly for booking
 
 ### ICP Pivot — Strategic Decision
 > **Legal Plus is kept as a live demo asset only.** As a legal tech SaaS, they can build AI themselves — low close probability and wrong archetype.
@@ -85,9 +94,10 @@ All core infrastructure is live and production-ready.
 
 ### Technical (blockers — do before sending any demo link)
 - [ ] **Deploy to Vercel** — get live URL (e.g. `nwagency.vercel.app` or custom domain) — **#1 blocker**
-- [ ] **`.env.local` + Vercel env** — add `NEXT_PUBLIC_BOOKING_URL` (Calendly 30-min call link)
-- [ ] **`capture-lead` API** — wire Resend email notification so leads arrive in inbox instantly
+- [x] **`NEXT_PUBLIC_BOOKING_URL`** — switched from Calendly to Cal.com (`cal.com/nw.-agency/30min`)
+- [x] **`capture-lead` API** — Resend wired, leads arrive in inbox instantly (two templates: landing page + demo request)
 - [ ] **VAPI dashboard** — switch voice from `nova` → Azure `fr-FR-BrigitteNeural` (or `fr-MA-JamalNeural`)
+- [ ] **Cal.com** — add second event type: **15 min "Suivi rapide"** (for warm leads who watched the video)
 
 ### Demo Pipeline — Build & Send
 - [ ] Build demo: **cabinet dentaire** (Casablanca/Rabat) — agent = appointment booking after hours
@@ -262,16 +272,46 @@ Sourced from `business/INTERNATIONAL_SALES.md`:
 
 ## This Week — Immediate Next Actions
 
-### 🔴 Blockers (nothing ships without these)
-1. **Deploy to Vercel** → get the live URL → share with first prospects
-2. **Add `NEXT_PUBLIC_BOOKING_URL`** → Calendly 30-min call → `.env.local` + Vercel env
-3. **Wire Resend** → leads from `/api/capture-lead` hit your inbox instantly
+> Last updated: 2026-03-01
 
-### 🟡 Revenue (do in parallel with blockers)
-4. **Contact Sawtia** → ask about white-label / reseller option → if yes = Darija market unlocked
-5. **Run Perplexity research** → feed `business/VoiceAIMarketResearch.md` → identify top 2 niches with real business examples + pricing benchmarks
-6. **Build 3 demos** → cabinet dentaire · clinique esthétique · agence immobilière
+### ✅ Done since last update
+- [x] Resend wired — leads from both forms arrive in inbox instantly
+- [x] Cal.com replacing Calendly (`cal.com/nw.-agency/30min`)
+- [x] Annual pricing toggle (−20%, savings display)
+- [x] All footer links functional, ROI tool hidden from public
+- [x] Demo page disclaimer cleaned up
+- [x] Forms fully wired to API (landing page + demo request)
+- [x] Pricing consistent in MAD for EN + FR
+
+### 🔴 Blocker (nothing ships without this)
+1. **Deploy to Vercel** → live URL → this is the only thing blocking outreach
+   - Go to vercel.com → Import from GitHub (`aestrolaber/nw-agency`)
+   - Add all keys from `.env.local` to Vercel → Environment Variables
+   - Every `git push origin main` auto-deploys from now on
+
+### 🟡 Revenue (this week)
+2. **Record Loom demo video** — free, 15 min, no editing
+   - Install Loom Chrome extension → screen-only mode
+   - Open `localhost:3000/demo/legalplus`
+   - Walk through: page → chat widget → voice call → booking CTA
+   - Narrate in French: *"Voici exactement ce que vos clients verront…"*
+   - Share link with prospects before calls → warm leads skip to 15-min call
+
+3. **Add 15-min Cal.com event type** → "Suivi rapide — déjà regardé la démo ?"
+   - Warm funnel: Loom video → 15-min call → close
+   - Cold funnel: landing page → 30-min bilan → close
+
+4. **Contact Sawtia** → white-label / reseller → if yes = Darija market unlocked
+
+5. **Build 3 demos** → cabinet dentaire · clinique esthétique · agence immobilière
+   - Add to `prospects.ts` + system prompts in `prompts.ts`
 
 ### 🟢 Quick wins (< 30 min each)
-7. **VAPI dashboard** → switch voice `nova` → `fr-FR-BrigitteNeural` + verify Legal Plus system prompt
-8. **Calendly** → create 30-min "Bilan IA gratuit" event type if not done
+6. **VAPI dashboard** → switch voice `nova` → `fr-FR-BrigitteNeural`
+7. **Cal.com profile** → update name to "nw. Agency" + add logo
+
+### 🎬 Video — Later (after first client)
+- **HeyGen** (~$29/mo) — AI avatar presents your demo, no camera needed
+  - Use the FR video script prompt (saved in session notes) to generate the script
+  - Warm funnel upgrade: HeyGen video on landing page → 15 min call → close
+- **Arcade.so** — interactive click-through demo, great to send over WhatsApp
